@@ -1,8 +1,13 @@
 var async = require('async');
 var httpreq = require('httpreq');
 var ntlm = require('./ntlm');
-var HttpsAgent = require('agentkeepalive').HttpsAgent;
-var keepaliveAgent = new HttpsAgent();
+var agentkeepalive = require('agentkeepalive');
+var httpAgent = new agentkeepalive();
+var httpsAgent = new agentkeepalive.HttpsAgent();
+
+var isUrlHTTPS = function (url) {
+	return url.substring(0, 5) === 'https';
+}
 
 exports.get = function(options, callback){
 	if(!options.workstation) options.workstation = '';
@@ -17,7 +22,7 @@ exports.get = function(options, callback){
 					'Connection' : 'keep-alive',
 					'Authorization': type1msg
 				},
-				agent: keepaliveAgent
+				agent: isUrlHTTPS(options.url) ? httpsAgent : httpAgent
 			}, $);
 		},
 
@@ -34,7 +39,7 @@ exports.get = function(options, callback){
 					'Authorization': type3msg
 				},
 				allowRedirects: false,
-				agent: keepaliveAgent
+				agent: isUrlHTTPS(options.url) ? httpsAgent : httpAgent
 			}, $);
 		}
 	], callback);
